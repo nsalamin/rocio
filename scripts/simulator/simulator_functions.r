@@ -240,7 +240,8 @@ simulateCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFr
         tree$edge.length <- tree$edge.length * rateScaler
       }
 
-      tt<-sim.history(tree, model$Q, anc=sample(model$dim.names, size=1, prob=model$profileCAT),message=F)
+      startState <- sample(model$dim.names, size=1, prob=model$profileCAT)
+      tt<-sim.history(tree, model$Q, anc=startState,message=F)
       sequences<-paste(sequences, tt$states, sep="")
       if(!is.null(gammaRate)) {
         tree$edge.length <- tree$edge.length / rateScaler
@@ -355,7 +356,8 @@ simulate_No_Coev<-function(s=1, d=10, r=1, nStates=20, nNonCoevol=500, nsp=100, 
         rateScaler <- rgamma(1, gammaRate, gammaRate)
         tree$edge.length <- tree$edge.length * rateScaler
       }
-      tt<-sim.history(tree, model$Q, anc=sample(model$dim.names, 1, prob = model$profileCAT),message=F)
+      startState <- sample(model$dim.names, size=1, prob=model$profileCAT)
+      tt<-sim.history(tree, model$Q, anc=startState,message=F)
       sequences<-paste(sequences, tt$states, sep="")
       if(!is.null(gammaRate)) {
         tree$edge.length <- tree$edge.length / rateScaler
