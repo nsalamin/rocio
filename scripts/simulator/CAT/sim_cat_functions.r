@@ -123,6 +123,7 @@ buildCAT <- function(r=1, nStates=20, alpha0DirichletMixtureCAT=100, profiles=C2
   # Draw the frequency for all CAT profiles
   profilesFreq <- rgamma(nProfilesCAT, alpha0DirichletMixtureCAT, 1)
   profilesFreq <- profilesFreq/sum(profilesFreq)
+  profilesFreq <- sort(profilesFreq, decreasing=TRUE) # prioritize more frequent profiles
 
   models <- list()
 
@@ -151,10 +152,10 @@ buildCAT <- function(r=1, nStates=20, alpha0DirichletMixtureCAT=100, profiles=C2
 }
 
 
-buildCAT20 <- function(r=1, nStates=20, alpha0DirichletMixtureCAT=100) {
+buildCAT20 <- function(r=1, nStates=20, alpha0DirichletMixtureCAT=50) {
   return(buildCAT(r, nStates, alpha0DirichletMixtureCAT, C20_1))
 }
 
-buildCAT50 <- function(r=1, nStates=20, alpha0DirichletMixtureCAT=100) {
+buildCAT50 <- function(r=1, nStates=20, alpha0DirichletMixtureCAT=50) {
   return(buildCAT(r, nStates, alpha0DirichletMixtureCAT, C50_1))
 }

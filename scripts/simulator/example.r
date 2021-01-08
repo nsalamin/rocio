@@ -28,7 +28,7 @@ nReplicas = 2
 # Define the average branch length
 # With this approach the tree length will on average be "treeLength[x]"
 nSpecies = 100
-treeLength = c(1,2)
+treeLength = c(1,2,4,8)
 nBranches = nSpecies*2-3
 meanBL = (1./nBranches)*treeLength
 
@@ -45,6 +45,7 @@ for(i in 1:nReplicas) {
     dir.create(file.path(folder, "figures"), recursive = TRUE, showWarnings = FALSE)
     figFolder <- paste(folder, "figures", sep="/")
 
+    # This example use the CAT model for independent sites based on the article of Si Quang et al. 2008 - Royal Society B
     x<-simulateCoev(s=1, d=100, r=5, nsp=100, nCoevol=10, nNonCoev=80, meanBL=meanBL[iBL], figFolder=figFolder, gammaRate = 2., indepModel="CAT")
 
     name_fasta <- paste(folder, "fasta.txt", sep="/")
