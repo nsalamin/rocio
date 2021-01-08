@@ -3,6 +3,8 @@ library(RColorBrewer)
 library(pals)
 library(MASS)
 
+source('./CAT/sim_cat_functions.r')
+
 buildCoev<-function(s,d,r,nStates=4,withinProfile=FALSE, uniformFreq=FALSE) {
 
   #s/d decrease if coevolution becomes stronger cf Dib et al 2014
@@ -111,8 +113,6 @@ buildLG<-function(r=1, nStates=20) {
 
   return(list(Q=Q/scaleQ, scaleQ=scaleQ, dim.names=states))
 }
-#buildLG()
-#s=0.1,d=1000,r=10 -> constant with profile
 
 plotHistory<-function(figName, startState, history, model) {
 
@@ -154,7 +154,9 @@ plotHistory<-function(figName, startState, history, model) {
 
 }
 
-simulateCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFreq=FALSE, nCoevol=25, nNonCoevol=500, nsp=100, meanBL=100, gammaRate=NULL, figFolder=NULL) {
+simulateCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFreq=FALSE, 
+                       nCoevol=25, nNonCoevol=500, nsp=100, meanBL=100, gammaRate=NULL, 
+                       figFolder=NULL, indepModelFunc="LG") {
   tree<-pbtree(n=nsp, scale=1)
   tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
   cat("Total BL: ")
@@ -212,26 +214,53 @@ simulateCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFr
   }
   cat("\n\nSimulating non-coevolving positions: ")
 
-  for(i in 1:nNonCoevol) {
-    cat(".")
-    if(!is.null(gammaRate)) {
-      rateScaler <- rgamma(1, gammaRate, gammaRate)
-      tree$edge.length <- tree$edge.length * rateScaler
-    }
+  if(indepModelFunc == "LG") {
     model<-buildLG(r=r, nStates=nStates)
-    tt<-sim.history(tree, model$Q, anc=sample(model$dim.names, 1),message=F)
-    sequences<-paste(sequences, tt$states, sep="")
-    if(!is.null(gammaRate)) {
-      tree$edge.length <- tree$edge.length / rateScaler
+    for(i in 1:nNonCoevol) {
+      cat(".")
+      if(!is.null(gammaRate)) {
+        rateScaler <- rgamma(1, gammaRate, gammaRate)
+        tree$edge.length <- tree$edge.length * rateScaler
+      }
+      tt<-sim.history(tree, model$Q, anc=sample(model$dim.names, 1),message=F)
+      sequences<-paste(sequences, tt$states, sep="")
+      if(!is.null(gammaRate)) {
+        tree$edge.length <- tree$edge.length / rateScaler
+      }
+    }
+  } else if(indepModelFunc == "CAT") {
+    mixtureCAT<-buildCAT(r=r, nStates=nStates, alpha0DirichletMixtureCAT=100)
+    for(i in 1:nNonCoevol) {
+      cat(".")
+
+      model <- sample(mixtureCAT$models, size=1, prob=mixtureCAT$profFreq)[[1]]
+
+      if(!is.null(gammaRate)) {
+        rateScaler <- rgamma(1, gammaRate, gammaRate)
+        tree$edge.length <- tree$edge.length * rateScaler
+      }
+
+      tt<-sim.history(tree, model$Q, anc=sample(model$dim.names, size=1, prob=model$profileCAT),message=F)
+      sequences<-paste(sequences, tt$states, sep="")
+      if(!is.null(gammaRate)) {
+        tree$edge.length <- tree$edge.length / rateScaler
+      }
+      
+      if(!is.null(figFolder)) {
+        figName <- sprintf("%s/CAT_%d.pdf", figFolder, i)
+        plotHistory(figName, startState, tt, model)
+      }
     }
   }
   cat("\n\nDone.\n")
   names(sequences)<-names(tt$states)
-  return(list(sequences=sequences, coevolProfiles=logResults, substCountCoev=substCountCoev, treeDepth=sum(tree$edge.length), tree=tree))
+  return(list(sequences=sequences, coevolProfiles=logResults, substCountCoev=substCountCoev, 
+              treeDepth=sum(tree$edge.length), tree=tree))
 }
 
 
-simulateOnlyCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFreq=FALSE, nCoevol=25, nsp=100, meanBL=100, gammaRate=NULL, figFolder=NULL) {
+simulateOnlyCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFreq=FALSE, 
+                           nCoevol=25, nsp=100, meanBL=100, gammaRate=NULL, figFolder=NULL) {
   tree<-pbtree(n=nsp, scale=1)
   tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
 
@@ -290,7 +319,8 @@ simulateOnlyCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, unifo
 }
 
 
-simulate_No_Coev<-function(s=1, d=10, r=1, nStates=20, nNonCoevol=500, nsp=100, meanBL=100, gammaRate=NULL, figFolder=NULL) {
+simulate_No_Coev<-function(s=1, d=10, r=1, nStates=20, nNonCoevol=500, nsp=100, meanBL=100, 
+                           gammaRate=NULL, figFolder=NULL, indepModel="LG") {
   tree<-pbtree(n=nsp, scale=1)
   tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
 
@@ -299,17 +329,42 @@ simulate_No_Coev<-function(s=1, d=10, r=1, nStates=20, nNonCoevol=500, nsp=100, 
   logResults<-list()
   sequences<-rep("", nsp)
   cat("\n\nSimulating non-coevolving positions: ")
-  for(i in 1:nNonCoevol) {
-    cat(".")
-    if(!is.null(gammaRate)) {
-      rateScaler <- rgamma(1, gammaRate, gammaRate)
-      tree$edge.length <- tree$edge.length * rateScaler
-    }
+  if(indepModelFunc == "LG") {
     model<-buildLG(r=r, nStates=nStates)
-    tt<-sim.history(tree, model$Q, anc=sample(model$dim.names, 1),message=F)
-    sequences<-paste(sequences, tt$states, sep="")
-    if(!is.null(gammaRate)) {
-      tree$edge.length <- tree$edge.length / rateScaler
+    for(i in 1:nNonCoevol) {
+      cat(".")
+      if(!is.null(gammaRate)) {
+        rateScaler <- rgamma(1, gammaRate, gammaRate)
+        tree$edge.length <- tree$edge.length * rateScaler
+      }
+      tt<-sim.history(tree, model$Q, anc=sample(model$dim.names, 1),message=F)
+      sequences<-paste(sequences, tt$states, sep="")
+      if(!is.null(gammaRate)) {
+        tree$edge.length <- tree$edge.length / rateScaler
+      }
+    }
+  } else if(indepModelFunc == "CAT") {
+    mixtureCAT<-buildCAT(r=r, nStates=nStates, alpha0DirichletMixtureCAT=100)
+
+    for(i in 1:nNonCoevol) {
+      cat(".")
+      
+      model <- sample(mixtureCAT$models, size=1, prob=mixtureCAT$profFreq)[[1]]
+      
+      if(!is.null(gammaRate)) {
+        rateScaler <- rgamma(1, gammaRate, gammaRate)
+        tree$edge.length <- tree$edge.length * rateScaler
+      }
+      tt<-sim.history(tree, model$Q, anc=sample(model$dim.names, 1, prob = model$profileCAT),message=F)
+      sequences<-paste(sequences, tt$states, sep="")
+      if(!is.null(gammaRate)) {
+        tree$edge.length <- tree$edge.length / rateScaler
+      }
+      
+      if(!is.null(figFolder)) {
+        figName <- sprintf("%s/CAT_%d.pdf", figFolder, i)
+        plotHistory(figName, startState, tt, model)
+      }
     }
   }
   cat("\n\nDone.\n")

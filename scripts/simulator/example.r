@@ -19,7 +19,7 @@ cat("-------------\n")
 ## Example of simulation
 set.seed(20)
 runName <- "MY_RUN"
-mainFolder <- "./Simulations"
+mainFolder <- "./Simulations2"
 dir.create(file.path(mainFolder, runName), recursive = TRUE, showWarnings = FALSE)
 runFolder <- paste(mainFolder, runName, sep="/")
 
@@ -45,7 +45,7 @@ for(i in 1:nReplicas) {
     dir.create(file.path(folder, "figures"), recursive = TRUE, showWarnings = FALSE)
     figFolder <- paste(folder, "figures", sep="/")
 
-    x<-simulateCoev(s=1, d=100, r=5, nsp=100, nCoevol=10, nNonCoev=80, meanBL=meanBL[iBL], figFolder=figFolder, gammaRate = 2.)
+    x<-simulateCoev(s=1, d=100, r=5, nsp=100, nCoevol=10, nNonCoev=80, meanBL=meanBL[iBL], figFolder=figFolder, gammaRate = 2., indepModel="CAT")
 
     name_fasta <- paste(folder, "fasta.txt", sep="/")
     name_tree <- paste(folder, "tree.txt", sep="/")
