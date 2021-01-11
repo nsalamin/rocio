@@ -107,7 +107,7 @@ class = "data.frame", row.names = c(NA,-50L)))
 
 
 
-buildCAT <- function(r=1, nStates=20, alpha0DirichletMixtureCAT=100, profiles=C20_1) {
+buildCAT <- function(r=1, nStates=20, alpha0DirichletMixtureCAT=10, profiles=C20_1) {
 
   stopifnot(nStates == 20)
 
@@ -124,6 +124,7 @@ buildCAT <- function(r=1, nStates=20, alpha0DirichletMixtureCAT=100, profiles=C2
   profilesFreq <- rgamma(nProfilesCAT, alpha0DirichletMixtureCAT, 1)
   profilesFreq <- profilesFreq/sum(profilesFreq)
   profilesFreq <- sort(profilesFreq, decreasing=TRUE) # prioritize more frequent profiles
+  show(profilesFreq)
 
   models <- list()
 

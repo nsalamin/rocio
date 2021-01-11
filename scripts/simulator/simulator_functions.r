@@ -229,7 +229,7 @@ simulateCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFr
       }
     }
   } else if(indepModelFunc == "CAT") {
-    mixtureCAT<-buildCAT(r=r, nStates=nStates, alpha0DirichletMixtureCAT=100)
+    mixtureCAT<-buildCAT(r=r, nStates=nStates, alpha0DirichletMixtureCAT=10)
     for(i in 1:nNonCoevol) {
       cat(".")
 
@@ -345,7 +345,7 @@ simulate_No_Coev<-function(s=1, d=10, r=1, nStates=20, nNonCoevol=500, nsp=100, 
       }
     }
   } else if(indepModelFunc == "CAT") {
-    mixtureCAT<-buildCAT(r=r, nStates=nStates, alpha0DirichletMixtureCAT=100)
+    mixtureCAT<-buildCAT(r=r, nStates=nStates, alpha0DirichletMixtureCAT=10)
 
     for(i in 1:nNonCoevol) {
       cat(".")
