@@ -19,7 +19,7 @@ cat("-------------\n")
 ## Example of simulation
 set.seed(20)
 runName <- "MY_RUN"
-mainFolder <- "./Simulations2"
+mainFolder <- "./Simulations"
 dir.create(file.path(mainFolder, runName), recursive = TRUE, showWarnings = FALSE)
 runFolder <- paste(mainFolder, runName, sep="/")
 
@@ -31,6 +31,13 @@ nSpecies = 100
 treeLength = c(1,2,4,8)
 nBranches = nSpecies*2-3
 meanBL = (1./nBranches)*treeLength
+
+modelsName = c("coev","LG","CAT")
+nSites = c(10,20,50) # 10 pairs coev, 20 sites indep. - LG, 50 sites indep. CAT
+gammaRates = c(1.0, 0.5, 0.5) # More rate heterogeneity for indep sites
+
+modelsSettings = data.frame(row.names=modelsName, nSites=nSites, gammaRates=gammaRates)
+show(modelsSettings)
 
 for(i in 1:nReplicas) {
   repName <- paste('SIM_AA_', i, sep="")
@@ -45,14 +52,17 @@ for(i in 1:nReplicas) {
     dir.create(file.path(folder, "figures"), recursive = TRUE, showWarnings = FALSE)
     figFolder <- paste(folder, "figures", sep="/")
 
-    # This example use the CAT model for independent sites based on the article of Si Quang et al. 2008 - Royal Society B
-    x<-simulateCoev(s=1, d=100, r=5, nsp=100, nCoevol=10, nNonCoev=80, meanBL=meanBL[iBL], figFolder=figFolder, gammaRate = 2., indepModel="CAT")
+    # Give params for each models: gammaRate and nb of sites/pairs.
+    x <- simulateMixture(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolder=figFolder, modelsSettings=modelsSettings, deltaTreeModif=1.0)
+    # Old signature: x<-simulateCoev(s=1, d=100, r=5, nsp=100, nCoevol=10, nNonCoev=80, meanBL=meanBL[iBL], figFolder=figFolder, gammaRate = 2., indepModel="CAT")
 
     name_fasta <- paste(folder, "fasta.txt", sep="/")
     name_tree <- paste(folder, "tree.txt", sep="/")
-    name_substCnt <- paste(folder, "countSubst.txt", sep="/")
+    name_substCntCoev <- paste(folder, "countSubstCoev.txt", sep="/")
+    name_substCntIndep <- paste(folder, "countSubstIndep.txt", sep="/")
     write.FASTA(as.AAbin(as.matrix(x$sequences)), file=name_fasta)
     write.tree(x$tree, file=name_tree)
-    lapply(x$substCountCoev, write, name_substCnt, append=TRUE, ncolumns=1000)
+    lapply(x$substCountCoev, write, name_substCntCoev, append=TRUE, ncolumns=1000)
+    lapply(x$substCountIndep, write, name_substCntIndep, append=TRUE, ncolumns=1000)
   }
 }
