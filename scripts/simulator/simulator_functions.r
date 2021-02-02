@@ -382,8 +382,11 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
   nStates=20
   
   tree<-pbtree(n=nsp, scale=1)
-  tree<-geiger::rescale(tree,"delta",deltaTreeModif)
   tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
+  if(deltaTreeModif != 1.0) {
+    tree<-geiger::rescale(tree,"delta",deltaTreeModif)
+    tree$edge.length<-(length(tree$edge.length)*meanBL)*(tree$edge.length/sum(tree$edge.length))
+  }
   cat("Total BL: ")
   cat(sum(tree$edge.length))
   cat("\n")
@@ -420,7 +423,8 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
       while(nProf1 < 3 || nProf2 < 3 || nProf1+nProf2 < length(tt$states)/2.) {
 
         nSubst <- sum(sapply(tt$maps,length)) - length(treeCoev$edge.length)
-        cat(paste("Rejecting a simulation: nSubstitutionTotal= ", nSubst, " -- meanBL = ", meanBL, "\n", sep=""))
+        #cat(paste("Rejecting a simulation: nSubstitutionTotal= ", nSubst, " -- meanBL = ", meanBL, "\n", sep=""))
+        cat('r')
         tt<-NULL
         tt<-sim.history(treeCoev,model$Q,anc=startState,message=F)
 
@@ -451,7 +455,7 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
   indepKeys <- row.names(modelsSettings)
   indepKeys = indepKeys[indepKeys != "coev"]
   for(key in indepKeys) {
-    alpha <- modelsSetting[[key, "alphas"]]
+    alpha <- modelsSettings[[key, "alphas"]]
     nNonCoevol=modelsSettings[[key, "nSites"]]
 
     if(key == "LG") {

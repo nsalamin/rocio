@@ -28,7 +28,7 @@ nReplicas = 2
 # Define the average branch length
 # With this approach the tree length will on average be "treeLength[x]"
 nSpecies = 100
-treeDeltas = c(0.1, 1.0, 10.)
+treeDeltas = c(0.5, 1.0, 2.)
 treeLength = c(1,2,4,8)
 nBranches = nSpecies*2-3
 meanBL = (1./nBranches)*treeLength

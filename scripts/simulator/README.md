@@ -4,7 +4,31 @@
 
 See example script for usage.
 
-## Independent model of substitutions (NEW : 11/01/2021)
+
+## Mixture Models (NEW : 02/02/2021)
+
+You can now define a "mixture" of models.
+```R
+# Defining the mixture
+modelsName = c("coev","LG","CAT")
+# 10 pairs coev, 20 sites indep. - LG, 50 sites indep. CAT
+nSites = c(10,20,20)
+# More rate heterogeneity for indep sites (alpha === gammaRates)
+alphas = c(2.0, 1.0, 1.0)
+# Packing the settings
+modelsSettings = data.frame(row.names=modelsName, nSites=nSites, alphas=alphas)
+
+# Calling the simulator
+x <- simulateMixture(s=1, d=100, r=5, nsp=100, meanBL=1.0, figFolder=figFolder, modelsSettings=modelsSettings, deltaTreeModif=1.0)
+```
+
+New features:
+ * Number of sites (or pairs of sites - coev) for **coev**, **LG**, **CAT**
+ * *alpha* parameter for the gamma distribution for **coev**, **LG**, **CAT**. As before, if *alpha*>>1 then the sites' evolution is *homogenenous* if *alpha*<<1 then the sites' evolution is heterogeneous.
+ * **deltaTreeModif** uses the Geiger::rescale function to either create star-like trees (e.g., *delta*>>1) or trees with deep-long branches (e.g., *delta*<<1).
+ * A new file is created during the simulation: *countSubstIndep.txt*. This files contains the number of substitutions per independent site.
+
+## Independent model of substitutions (11/01/2021)
 
 You can chose between two models of substitutions for sites evolving independently.
 
