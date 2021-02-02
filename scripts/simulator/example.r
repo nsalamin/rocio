@@ -28,19 +28,20 @@ nReplicas = 2
 # Define the average branch length
 # With this approach the tree length will on average be "treeLength[x]"
 nSpecies = 100
+treeDeltas = c(0.1, 1.0, 10.)
 treeLength = c(1,2,4,8)
 nBranches = nSpecies*2-3
 meanBL = (1./nBranches)*treeLength
 
 modelsName = c("coev","LG","CAT")
-nSites = c(10,20,50) # 10 pairs coev, 20 sites indep. - LG, 50 sites indep. CAT
-gammaRates = c(1.0, 0.5, 0.5) # More rate heterogeneity for indep sites
+nSites = c(10,20,20) # 10 pairs coev, 20 sites indep. - LG, 50 sites indep. CAT
+alphas = c(1.0, 1.0, 1.0) # More rate heterogeneity for indep sites (alpha === gammaRates)
 
-modelsSettings = data.frame(row.names=modelsName, nSites=nSites, gammaRates=gammaRates)
+modelsSettings = data.frame(row.names=modelsName, nSites=nSites, alphas=alphas)
 show(modelsSettings)
 
-for(i in 1:nReplicas) {
-  repName <- paste('SIM_AA_', i, sep="")
+for(i in 1:length(treeDeltas)) {
+  repName <- paste('SIM_DELTA_', i, sep="")
   dir.create(file.path(runFolder, repName), recursive = TRUE, showWarnings = FALSE)
   repFolder <- paste(runFolder, repName, sep="/")
 
@@ -53,8 +54,9 @@ for(i in 1:nReplicas) {
     figFolder <- paste(folder, "figures", sep="/")
 
     # Give params for each models: gammaRate and nb of sites/pairs.
-    x <- simulateMixture(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolder=figFolder, modelsSettings=modelsSettings, deltaTreeModif=1.0)
-    # Old signature: x<-simulateCoev(s=1, d=100, r=5, nsp=100, nCoevol=10, nNonCoev=80, meanBL=meanBL[iBL], figFolder=figFolder, gammaRate = 2., indepModel="CAT")
+    x <- simulateMixture(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolder=figFolder, modelsSettings=modelsSettings, deltaTreeModif=treeDeltas[i])
+    # Old signature: 
+    ## x<-simulateCoev(s=1, d=100, r=5, nsp=100, nCoevol=10, nNonCoev=80, meanBL=meanBL[iBL], figFolder=figFolder, gammaRate = 2., indepModel="CAT")
 
     name_fasta <- paste(folder, "fasta.txt", sep="/")
     name_tree <- paste(folder, "tree.txt", sep="/")

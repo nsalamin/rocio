@@ -2,6 +2,7 @@ library(phytools)
 library(RColorBrewer)
 library(pals)
 library(MASS)
+library(geiger)
 
 source('./CAT/sim_cat_functions.r')
 
@@ -381,6 +382,7 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
   nStates=20
   
   tree<-pbtree(n=nsp, scale=1)
+  tree<-geiger::rescale(tree,"delta",deltaTreeModif)
   tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
   cat("Total BL: ")
   cat(sum(tree$edge.length))
@@ -396,13 +398,13 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
     treeCoev<-tree
     treeCoev$edge.length<-tree$edge.length * 2
     nCoevol=modelsSettings[["coev", "nSites"]]
-    gammaRate <- modelsSettings[["coev", "gammaRates"]]
+    alpha <- modelsSettings[["coev", "alphas"]]
 
     cat("Simulating coevolving positions: ")
     for(i in 1:nCoevol) {
       cat(".")
-      if(!is.null(gammaRate)) {
-        rateScaler <- rgamma(1, gammaRate, gammaRate)
+      if(!is.null(alpha)) {
+        rateScaler <- rgamma(1, alpha, alpha)
         treeCoev$edge.length <- treeCoev$edge.length * rateScaler
       }
       model<-buildCoev(s=s,d=d,r=r,nStates=nStates,withinProfile=withinProfile, uniformFreq=uniformFreq)
@@ -429,7 +431,7 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
       sequences<-paste(sequences, tt$states, sep="")
       nSubst <- sum(sapply(tt$maps,length)) - length(treeCoev$edge.length)
       substCountCoev[[i]] <- nSubst
-      if(!is.null(gammaRate)) {
+      if(!is.null(alpha)) {
         treeCoev$edge.length <- treeCoev$edge.length / rateScaler
       }
 
@@ -449,7 +451,7 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
   indepKeys <- row.names(modelsSettings)
   indepKeys = indepKeys[indepKeys != "coev"]
   for(key in indepKeys) {
-    gammaRate <- modelsSetting[[key, "gammaRates"]]
+    alpha <- modelsSetting[[key, "alphas"]]
     nNonCoevol=modelsSettings[[key, "nSites"]]
 
     if(key == "LG") {
@@ -457,8 +459,8 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
       for(i in 1:nNonCoevol) {
         cat(".")
         nSites = nSites + 1 
-        if(!is.null(gammaRate)) {
-          rateScaler <- rgamma(1, gammaRate, gammaRate)
+        if(!is.null(alpha)) {
+          rateScaler <- rgamma(1, alpha, alpha)
           tree$edge.length <- tree$edge.length * rateScaler
         }
         tt<-sim.history(tree, model$Q, anc=sample(model$dim.names, 1),message=F)
@@ -467,7 +469,7 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
         substCountIndep[[nSites]] <- nSubst
         
         sequences<-paste(sequences, tt$states, sep="")
-        if(!is.null(gammaRate)) {
+        if(!is.null(alpha)) {
           tree$edge.length <- tree$edge.length / rateScaler
         }
       }
@@ -479,8 +481,8 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
 
         model <- sample(mixtureCAT$models, size=1, prob=mixtureCAT$profFreq)[[1]]
 
-        if(!is.null(gammaRate)) {
-          rateScaler <- rgamma(1, gammaRate, gammaRate)
+        if(!is.null(alpha)) {
+          rateScaler <- rgamma(1, alpha, alpha)
           tree$edge.length <- tree$edge.length * rateScaler
         }
 
@@ -491,7 +493,7 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
         substCountIndep[[nSites]] <- nSubst
         
         sequences<-paste(sequences, tt$states, sep="")
-        if(!is.null(gammaRate)) {
+        if(!is.null(alpha)) {
           tree$edge.length <- tree$edge.length / rateScaler
         }
 
