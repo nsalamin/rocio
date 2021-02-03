@@ -158,8 +158,17 @@ plotHistory<-function(figName, startState, history, model) {
 simulateCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFreq=FALSE,
                        nCoevol=25, nNonCoevol=500, nsp=100, meanBL=100, gammaRate=NULL,
                        figFolder=NULL, indepModelFunc="LG") {
-  tree<-pbtree(n=nsp, scale=1)
-  tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
+  
+  if(treefile==""){
+    tree<-pbtree(n=nsp, scale=1)
+    tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
+    
+  }else{
+    tree<-read.tree(treefile)
+    nsp=length(tree$tip.label)
+  }
+  
+
   cat("Total BL: ")
   cat(sum(tree$edge.length))
   cat("\n")
@@ -377,12 +386,20 @@ simulate_No_Coev<-function(s=1, d=10, r=1, nStates=20, nNonCoevol=500, nsp=100, 
 
 
 simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolder=NULL, modelsSettings=modelsSettings,
-                   withinProfile=TRUE, uniformFreq=FALSE, deltaTreeModif=1.0) {
+                   withinProfile=TRUE, uniformFreq=FALSE, deltaTreeModif=1.0,treefile="") {
 
   nStates=20
   
-  tree<-pbtree(n=nsp, scale=1)
-  tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
+  if(treefile==""){
+    tree<-pbtree(n=nsp, scale=1)
+    tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
+    
+  }else{
+    tree<-read.tree(treefile)
+    nsp=length(tree$tip.label)
+  }
+  
+
   if(deltaTreeModif != 1.0) {
     tree<-geiger::rescale(tree,"delta",deltaTreeModif)
     tree$edge.length<-(length(tree$edge.length)*meanBL)*(tree$edge.length/sum(tree$edge.length))
