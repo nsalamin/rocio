@@ -21,3 +21,12 @@ d is = norm if depth=0.5,
 	fasta simulated with LG gamma =1 and coev model d/s=100 
 	25 pairscoevolving 100 sites
 	Also in the folder the number of substitution and a folder with figures of the evolving sites along the trees
+
+###  WithCoevMixture/
+        fasta simulated with LG gamma =1, CAT gamma 1 and coev model d/s=100 
+        25 pairscoevolving 100 sites, 25 LG 25 CAT
+        Also in the folder the number of substitution and a folder with figures of the evolving sites along the trees
+
+
+## Results/
+    some figures with results of plmDCA on FASTA simulated with CoevMixture
