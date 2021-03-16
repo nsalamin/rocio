@@ -157,7 +157,7 @@ plotHistory<-function(figName, startState, history, model) {
 
 simulateCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFreq=FALSE,
                        nCoevol=25, nNonCoevol=500, nsp=100, meanBL=100, gammaRate=NULL,
-                       figFolder=NULL, indepModelFunc="LG") {
+                       figFolder=NULL, indepModelFunc="LG", treefile="") {
   
   if(treefile==""){
     tree<-pbtree(n=nsp, scale=1)
