@@ -336,7 +336,6 @@ simulate_No_Coev<-function(s=1, d=10, r=1, nStates=20, nNonCoevol=500, nsp=100, 
   tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
 
   rateScaler<-1.
-
   logResults<-list()
   sequences<-rep("", nsp)
   cat("\n\nSimulating non-coevolving positions: ")
@@ -393,11 +392,12 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
   if(treefile==""){
     tree<-pbtree(n=nsp, scale=1)
     tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
-    
   }else{
     tree<-read.tree(treefile)
     nsp=length(tree$tip.label)
+    
   }
+
   
 
   if(deltaTreeModif != 1.0) {
@@ -412,14 +412,15 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
   logResults<-list()
   substCountCoev<-list()
   sequences<-rep("", nsp)
-
+  
   stopifnot(any(row.names(modelsSettings) == "coev"))
   if(modelsSettings[["coev", "nSites"]] > 0) {
     treeCoev<-tree
     treeCoev$edge.length<-tree$edge.length * 2
     nCoevol=modelsSettings[["coev", "nSites"]]
     alpha <- modelsSettings[["coev", "alphas"]]
-
+    mutationsStatesCoev<-matrix (nrow=nCoevol*2,ncol=length(tree$edge.length))
+    
     cat("Simulating coevolving positions: ")
     for(i in 1:nCoevol) {
       cat(".")
@@ -452,6 +453,14 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
       sequences<-paste(sequences, tt$states, sep="")
       nSubst <- sum(sapply(tt$maps,length)) - length(treeCoev$edge.length)
       substCountCoev[[i]] <- nSubst
+      
+      nodeStates<-t(matrix(unlist(apply(tt$node.states,1,function(x) strsplit(x,split=""))),ncol=nrow(tt$node.states)))
+      
+      mutationsStatesCoev[(i-1)*2+1,]<-nodeStates[,1]!=nodeStates[,3]
+      mutationsStatesCoev[(i-1)*2+2,]<-nodeStates[,2]!=nodeStates[,4]
+      
+      
+      
       if(!is.null(alpha)) {
         treeCoev$edge.length <- treeCoev$edge.length / rateScaler
       }
@@ -474,9 +483,11 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
   for(key in indepKeys) {
     alpha <- modelsSettings[[key, "alphas"]]
     nNonCoevol=modelsSettings[[key, "nSites"]]
-
+    
     if(key == "LG") {
       model<-buildLG(r=r, nStates=nStates)
+      mutationsStatesLG<-matrix (nrow=nNonCoevol,ncol=length(tree$edge.length))
+      
       for(i in 1:nNonCoevol) {
         cat(".")
         nSites = nSites + 1 
@@ -489,13 +500,18 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
         nSubst <- sum(sapply(tt$maps,length)) - length(tree$edge.length)
         substCountIndep[[nSites]] <- nSubst
         
+        mutationsStatesLG[i,]<-tt$node.states[,1]!=tt$node.states[,2]
+        
         sequences<-paste(sequences, tt$states, sep="")
         if(!is.null(alpha)) {
           tree$edge.length <- tree$edge.length / rateScaler
         }
       }
+      
     } else if(key == "CAT") {
-      mixtureCAT<-buildCAT(r=r, nStates=nStates, alpha0DirichletMixtureCAT=10)
+      mixtureCAT<-buildCAT(r=r, nStates=nStates, alpha0DirichletMixtureCAT=10)  #original value 10
+      mutationsStatesCAT<-matrix (nrow=nNonCoevol,ncol=length(tree$edge.length))
+      
       for(i in 1:nNonCoevol) {
         cat(".")
         nSites = nSites + 1 
@@ -508,31 +524,35 @@ simulateMixture<-function(s=1, d=100, r=5, nsp=100, meanBL=meanBL[iBL], figFolde
         }
 
         startState <- sample(model$dim.names, size=1, prob=model$profileCAT)
+
         tt<-sim.history(tree, model$Q, anc=startState,message=F)
         
         nSubst <- sum(sapply(tt$maps,length)) - length(tree$edge.length)
         substCountIndep[[nSites]] <- nSubst
+        mutationsStatesCAT[i,]<-tt$node.states[,1]!=tt$node.states[,2]
         
         sequences<-paste(sequences, tt$states, sep="")
         if(!is.null(alpha)) {
           tree$edge.length <- tree$edge.length / rateScaler
         }
-
+        
         if(!is.null(figFolder)) {
           figName <- sprintf("%s/CAT_%d.pdf", figFolder, i)
           plotHistory(figName, startState, tt, model)
         }
       }
+      
     } else {
       stopifnot(FALSE)
     }
   }
+   fullmutMat<-rbind(mutationsStatesCoev,rbind(mutationsStatesLG,mutationsStatesCAT))
   cat("\n\nDone.\n")
   
   names(sequences)<-names(tt$states)
   
   return(list(sequences=sequences, coevolProfiles=logResults, substCountCoev=substCountCoev,
-              substCountIndep=substCountIndep, treeDepth=sum(tree$edge.length), tree=tree))
+              substCountIndep=substCountIndep, mutationStates=fullmutMat,treeDepth=sum(tree$edge.length), tree=tree))
 }
 
 
