@@ -271,10 +271,18 @@ simulateCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFr
 
 
 simulateOnlyCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, uniformFreq=FALSE,
-                           nCoevol=25, nsp=100, meanBL=100, gammaRate=NULL, figFolder=NULL) {
-  tree<-pbtree(n=nsp, scale=1)
-  tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
-
+                           nCoevol=25, nsp=100, meanBL=100, gammaRate=NULL, figFolder=NULL, treefile="") {
+  
+  
+  if(treefile==""){
+    tree<-pbtree(n=nsp, scale=1)
+    tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
+    
+  }else{
+    tree<-read.tree(treefile)
+    nsp=length(tree$tip.label)
+  }
+  
   rateScaler<-1.
 
   logResults<-list()
@@ -331,9 +339,16 @@ simulateOnlyCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, unifo
 
 
 simulate_No_Coev<-function(s=1, d=10, r=1, nStates=20, nNonCoevol=500, nsp=100, meanBL=100,
-                           gammaRate=NULL, figFolder=NULL, indepModel="LG") {
-  tree<-pbtree(n=nsp, scale=1)
-  tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
+                           gammaRate=NULL, figFolder=NULL, indepModel="LG", treefile="") {
+
+  if(treefile==""){
+    tree<-pbtree(n=nsp, scale=1)
+    tree$edge.length<-rexp(length(tree$edge.length), 1./meanBL)
+    
+  }else{
+    tree<-read.tree(treefile)
+    nsp=length(tree$tip.label)
+  }
 
   rateScaler<-1.
   logResults<-list()
