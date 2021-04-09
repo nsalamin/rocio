@@ -339,7 +339,7 @@ simulateOnlyCoev<-function(s=1, d=10, r=1, nStates=20, withinProfile=TRUE, unifo
 
 
 simulate_No_Coev<-function(s=1, d=10, r=1, nStates=20, nNonCoevol=500, nsp=100, meanBL=100,
-                           gammaRate=NULL, figFolder=NULL, indepModel="LG", treefile="") {
+                           gammaRate=NULL, figFolder=NULL, indepModelFunc="LG", treefile="") {
 
   if(treefile==""){
     tree<-pbtree(n=nsp, scale=1)
